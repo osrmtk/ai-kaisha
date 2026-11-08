@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>べんりツール箱｜無料で使える計算ツール集</title>
+<meta name="description" content="割り勘計算など、毎日のちょっとした計算をすぐに片づける無料ツール集。登録不要・スマホ対応。入力した内容はどこにも送信しません。">
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--text:#1f2328;--sub:#626a73;--line:#e3e6ea;--accent:#1f8a5b;--accent-soft:#e3f4ec}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--bg:#16181b;--card:#202328;--text:#e8eaed;--sub:#9aa1a9;--line:#33373d;--accent:#4cc38a;--accent-soft:#1d3a2c}
+}
+:root[data-theme="dark"]{--bg:#16181b;--card:#202328;--text:#e8eaed;--sub:#9aa1a9;--line:#33373d;--accent:#4cc38a;--accent-soft:#1d3a2c}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);line-height:1.7;
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif}
+.wrap{max-width:680px;margin:0 auto;padding:32px 16px 56px}
+h1{font-size:1.6rem;margin:0 0 4px}
+.lead{color:var(--sub);margin:0 0 24px}
+.tools{display:grid;gap:12px}
+a.tool{display:block;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;
+  color:var(--text);text-decoration:none}
+a.tool:hover{border-color:var(--accent)}
+.tool .name{font-weight:700;font-size:1.1rem}
+.tool .desc{color:var(--sub);font-size:.92rem}
+.tag{display:inline-block;font-size:.72rem;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:0 8px;margin-left:6px;vertical-align:2px}
+.soon{border:1px dashed var(--line);border-radius:14px;padding:14px 18px;color:var(--sub);font-size:.9rem}
+footer{color:var(--sub);font-size:.8rem;text-align:center;margin-top:28px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>べんりツール箱</h1>
+  <p class="lead">毎日のちょっとした計算を、すぐに片づける無料ツール集。登録不要・スマホ対応。入力した内容はどこにも送信しません。</p>
+
+  <div class="tools">
+    <a class="tool" href="tools/warikan/index.html">
+      <div class="name">傾斜割り勘計算<span class="tag">新着</span></div>
+      <div class="desc">上司は多め・学生は少なめの割り勘。端数調整と LINE 用の文章づくりまで。</div>
+    </a>
+    <div class="soon">ほかのツールも準備中です。</div>
+  </div>
+
+  <footer>べんりツール箱　計算結果は目安です。大事なことは、もう一度ご自身で確かめてください。</footer>
+</div>
+</body>
+</html>

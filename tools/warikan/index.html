@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>傾斜割り勘計算ツール｜上司多め・端数調整・LINEで送れる</title>
+<meta name="description" content="飲み会の割り勘を、上司は多め・学生は少なめなど傾斜をつけて計算。100円単位などの端数調整、幹事の負担額も自動で出して、LINEに貼れる文章をワンタップでコピーできる無料ツールです。">
+<style>
+:root{
+  --bg:#f6f7f9; --card:#fff; --text:#1f2328; --sub:#626a73; --line:#e3e6ea;
+  --accent:#1f8a5b; --accent-soft:#e3f4ec; --warn:#b4541a; --warn-soft:#fbeee4; --input:#fff;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#16181b; --card:#202328; --text:#e8eaed; --sub:#9aa1a9; --line:#33373d;
+    --accent:#4cc38a; --accent-soft:#1d3a2c; --warn:#f0a06a; --warn-soft:#3d2a1d; --input:#17191c;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16181b; --card:#202328; --text:#e8eaed; --sub:#9aa1a9; --line:#33373d;
+  --accent:#4cc38a; --accent-soft:#1d3a2c; --warn:#f0a06a; --warn-soft:#3d2a1d; --input:#17191c;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);line-height:1.7;
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif}
+.wrap{max-width:680px;margin:0 auto;padding:24px 16px 56px}
+h1{font-size:1.45rem;margin:0 0 4px}
+.lead{color:var(--sub);margin:0 0 18px;font-size:.95rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+label.f{display:block;font-size:.85rem;color:var(--sub);margin-bottom:4px}
+input,select{font:inherit;color:var(--text);background:var(--input);border:1px solid var(--line);
+  border-radius:8px;padding:8px 10px;width:100%;min-width:0}
+input:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px}
+.total input{font-size:1.4rem;font-weight:700}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.groups-head,.group{display:grid;grid-template-columns:1.4fr .8fr .9fr 1fr 32px;gap:8px;align-items:center}
+.groups-head{font-size:.78rem;color:var(--sub);margin:10px 0 4px}
+.group{margin-bottom:8px}
+.del{border:none;background:none;color:var(--sub);font-size:1.2rem;cursor:pointer;padding:0}
+.del:hover{color:var(--warn)}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+button.b{font:inherit;font-size:.9rem;border:1px solid var(--line);background:var(--card);color:var(--text);
+  border-radius:999px;padding:6px 14px;cursor:pointer}
+button.b:hover{border-color:var(--accent)}
+button.main{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700;border-radius:10px;padding:10px 18px}
+.hint{font-size:.8rem;color:var(--sub);margin-top:6px}
+.res-row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px dashed var(--line)}
+.res-row:last-child{border-bottom:none}
+.res-row .amt{font-size:1.3rem;font-weight:700}
+.sum{margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--accent-soft);font-size:.95rem}
+.sum.warn{background:var(--warn-soft);color:var(--warn)}
+.err{color:var(--warn);font-weight:700}
+textarea{width:100%;min-height:150px;font:inherit;font-size:.9rem;color:var(--text);background:var(--input);
+  border:1px solid var(--line);border-radius:8px;padding:10px;resize:vertical}
+.copied{color:var(--accent);font-size:.9rem;margin-left:8px}
+.ad-slot{border:1px dashed var(--line);border-radius:10px;padding:14px;text-align:center;color:var(--sub);font-size:.8rem;margin-bottom:16px}
+h2{font-size:1.1rem;margin:0 0 8px}
+details{border-top:1px solid var(--line);padding:10px 0}
+summary{cursor:pointer;font-weight:600}
+.mlabel{display:none;font-size:.72rem;color:var(--sub)}
+footer{color:var(--sub);font-size:.8rem;text-align:center;margin-top:20px}
+@media (max-width:520px){
+  .groups-head{display:none}
+  #groups{margin-top:14px}
+  .group{grid-template-columns:1fr 1fr 32px;grid-template-areas:"name name del" "cnt wt wt" "fix fix fix";
+    padding:10px;border:1px solid var(--line);border-radius:10px}
+  .group .g-name{grid-area:name}.group .g-cnt{grid-area:cnt}.group .g-wt{grid-area:wt}
+  .group .g-fix{grid-area:fix}.group .del{grid-area:del}
+  .group input::placeholder{color:var(--sub)}
+  .group .mlabel{display:block}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>傾斜割り勘計算ツール</h1>
+  <p class="lead">上司は多め・学生は少なめ、などの割り勘をかんたん計算。端数の調整と、LINE に貼れる文章づくりまで一度にできます。</p>
+
+  <div class="card">
+    <div class="total">
+      <label class="f" for="total">お会計の合計（円）</label>
+      <input id="total" type="number" inputmode="numeric" min="0" step="1" value="30000">
+    </div>
+
+    <div class="groups-head"><span>グループ名</span><span>人数</span><span>比率</span><span>固定額（円）</span><span></span></div>
+    <div id="groups"></div>
+    <div class="btns">
+      <button class="b" id="add" type="button">＋ グループを追加</button>
+      <button class="b" data-preset="even" type="button">全員同じ</button>
+      <button class="b" data-preset="boss" type="button">上司多め</button>
+      <button class="b" data-preset="student" type="button">学生少なめ</button>
+    </div>
+    <p class="hint">比率：「一般＝1」とすると、上司を 1.5 にすれば一般の1.5倍。固定額を入れたグループは、その金額で決まりです（比率は無視）。</p>
+
+    <div class="row2">
+      <div>
+        <label class="f" for="unit">集める単位</label>
+        <select id="unit">
+          <option value="1">1円</option>
+          <option value="10">10円</option>
+          <option value="100" selected>100円</option>
+          <option value="500">500円</option>
+          <option value="1000">1000円</option>
+        </select>
+      </div>
+      <div>
+        <label class="f" for="mode">端数のあつかい</label>
+        <select id="mode">
+          <option value="up" selected>多めに集める（足りなくならない）</option>
+          <option value="down">少なめに集める（幹事が足す）</option>
+          <option value="near">近いほうに丸める</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="result" aria-live="polite"></div>
+
+  <div class="card">
+    <h2>LINE に送る文章</h2>
+    <textarea id="msg" readonly></textarea>
+    <div class="btns">
+      <button class="b main" id="copy" type="button">文章をコピー</button><span class="copied" id="copied"></span>
+    </div>
+  </div>
+
+  <div class="ad-slot" id="ad">（広告スペース：公開するときにここへ広告を入れます）</div>
+
+  <div class="card">
+    <h2>よくある質問</h2>
+    <details><summary>傾斜割り勘ってなに？</summary>
+      <p>立場や飲んだ量に合わせて、払う金額に差をつける割り勘です。たとえば「上司は1.5倍、学生は0.7倍」のように比率で決めます。</p></details>
+    <details><summary>端数はどうなりますか？</summary>
+      <p>「多めに集める」を選ぶと、全員の金額を単位に切り上げるので、お会計が足りなくなることはありません。余った分は「おつり」として表示します。「少なめに集める」では切り捨てて、足りない分を幹事が出す計算になります。</p></details>
+    <details><summary>「おごり」の人を入れたいときは？</summary>
+      <p>そのグループの固定額に「0」を入れてください。その人の分は、ほかの人で比率どおりに分けます。</p></details>
+    <details><summary>入力したデータは送信されますか？</summary>
+      <p>いいえ。計算はすべてお使いの端末の中だけで行います。入力内容は次回のために、この端末のブラウザにだけ保存されます。</p></details>
+  </div>
+
+  <footer><a href="../../index.html" style="color:inherit">← ほかの便利ツールを見る</a><br>傾斜割り勘計算ツール　計算結果は目安です。最後はお店のレシートと照らし合わせてください。</footer>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const yen = n => n.toLocaleString("ja-JP") + "円";
+const KEY = "warikan-v1";
+
+const presets = {
+  even:    [{name:"全員", count:6, weight:1, fixed:""}],
+  boss:    [{name:"上司", count:2, weight:1.5, fixed:""},{name:"一般", count:5, weight:1, fixed:""}],
+  student: [{name:"社会人", count:4, weight:1, fixed:""},{name:"学生", count:3, weight:0.6, fixed:""}]
+};
+
+function rowHTML(g){
+  const div = document.createElement("div");
+  div.className = "group";
+  div.innerHTML = `
+    <label class="g-name"><span class="mlabel">グループ名</span><input class="name" type="text" maxlength="20"></label>
+    <label class="g-cnt"><span class="mlabel">人数</span><input class="count" type="number" inputmode="numeric" min="0" step="1"></label>
+    <label class="g-wt"><span class="mlabel">比率</span><input class="weight" type="number" inputmode="decimal" min="0" step="0.1"></label>
+    <label class="g-fix"><span class="mlabel">固定額（円・空欄なら比率で計算）</span><input class="fixed" type="number" inputmode="numeric" min="0" step="1" placeholder="なし"></label>
+    <button class="del" type="button" aria-label="このグループを消す">×</button>`;
+  div.querySelector(".name").value = g.name;
+  div.querySelector(".count").value = g.count;
+  div.querySelector(".weight").value = g.weight;
+  div.querySelector(".fixed").value = g.fixed;
+  div.querySelector(".del").onclick = () => { div.remove(); update(); };
+  div.addEventListener("input", update);
+  return div;
+}
+
+function setGroups(list){
+  const box = $("#groups"); box.innerHTML = "";
+  list.forEach(g => box.appendChild(rowHTML(g)));
+  update();
+}
+
+function readGroups(){
+  return [...document.querySelectorAll(".group")].map(d => ({
+    name: d.querySelector(".name").value.trim() || "グループ",
+    count: Math.max(0, Math.floor(Number(d.querySelector(".count").value) || 0)),
+    weight: Math.max(0, Number(d.querySelector(".weight").value) || 0),
+    fixed: d.querySelector(".fixed").value
+  }));
+}
+
+function roundTo(x, unit, mode){
+  const q = x / unit;
+  const r = mode === "up" ? Math.ceil(q - 1e-9) : mode === "down" ? Math.floor(q + 1e-9) : Math.round(q);
+  return r * unit;
+}
+
+// 計算の本体（テストしやすいように外に出す）
+function calc(total, groups, unit, mode){
+  const active = groups.filter(g => g.count > 0);
+  if (!(total > 0)) return {error:"お会計の合計を入れてください。"};
+  if (!active.length) return {error:"人数を1人以上にしてください。"};
+  let fixedSum = 0, weightSum = 0;
+  active.forEach(g => {
+    if (g.fixed !== "" && g.fixed !== null) fixedSum += Math.max(0, Number(g.fixed) || 0) * g.count;
+    else weightSum += g.weight * g.count;
+  });
+  const rest = total - fixedSum;
+  if (rest < 0) return {error:"固定額の合計が、お会計を超えています。"};
+  if (rest > 0 && weightSum === 0) return {error:"比率で払う人がいません。比率か固定額を見直してください。"};
+  const base = weightSum > 0 ? rest / weightSum : 0;
+  const rows = active.map(g => {
+    const isFixed = g.fixed !== "" && g.fixed !== null;
+    const exact = isFixed ? Math.max(0, Number(g.fixed) || 0) : base * g.weight;
+    const per = isFixed ? exact : roundTo(exact, unit, mode);
+    return {name:g.name, count:g.count, per, subtotal:per * g.count, fixed:isFixed};
+  });
+  const collected = rows.reduce((s, r) => s + r.subtotal, 0);
+  const people = rows.reduce((s, r) => s + r.count, 0);
+  return {rows, collected, diff: collected - total, people};
+}
+
+function update(){
+  const total = Math.floor(Number($("#total").value) || 0);
+  const unit = Number($("#unit").value);
+  const mode = $("#mode").value;
+  const groups = readGroups();
+  const r = calc(total, groups, unit, mode);
+  const box = $("#result");
+  if (r.error){
+    box.innerHTML = `<p class="err">${r.error}</p>`;
+    $("#msg").value = "";
+  } else {
+    box.innerHTML = `<h2>1人あたりの金額</h2>` + r.rows.map(x =>
+      `<div class="res-row"><span>${esc(x.name)}（${x.count}人）${x.fixed ? "・固定" : ""}</span><span class="amt">${yen(x.per)}</span></div>`
+    ).join("") + summary(total, r);
+    $("#msg").value = message(total, r);
+  }
+  save(total, unit, mode, groups);
+}
+
+function summary(total, r){
+  if (r.diff > 0) return `<div class="sum">集める合計 ${yen(r.collected)}（${r.people}人）／ お会計 ${yen(total)}<br><b>おつり ${yen(r.diff)}</b> が出ます。</div>`;
+  if (r.diff < 0) return `<div class="sum warn">集める合計 ${yen(r.collected)}（${r.people}人）／ お会計 ${yen(total)}<br><b>幹事が ${yen(-r.diff)} 足します。</b></div>`;
+  return `<div class="sum">集める合計 ${yen(r.collected)}（${r.people}人）で、お会計ぴったりです。</div>`;
+}
+
+function message(total, r){
+  const lines = ["【お会計のお知らせ】", `合計：${yen(total)}（${r.people}人）`, ""];
+  r.rows.forEach(x => lines.push(`・${x.name}：1人 ${yen(x.per)}`));
+  lines.push("");
+  if (r.diff > 0) lines.push(`※端数の関係で ${yen(r.diff)} 多く集めます。`);
+  if (r.diff < 0) lines.push(`※端数の ${yen(-r.diff)} は幹事が出します。`);
+  lines.push("幹事までお支払いをお願いします！");
+  return lines.join("\n");
+}
+
+function esc(s){ return s.replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+function save(total, unit, mode, groups){
+  try { localStorage.setItem(KEY, JSON.stringify({total, unit, mode, groups})); } catch(e) {}
+}
+function load(){
+  try { return JSON.parse(localStorage.getItem(KEY) || "null"); } catch(e) { return null; }
+}
+
+$("#add").onclick = () => { $("#groups").appendChild(rowHTML({name:"", count:1, weight:1, fixed:""})); update(); };
+document.querySelectorAll("[data-preset]").forEach(b => b.onclick = () => setGroups(presets[b.dataset.preset].map(g => ({...g}))));
+["#total", "#unit", "#mode"].forEach(s => $(s).addEventListener("input", update));
+$("#copy").onclick = async () => {
+  const t = $("#msg").value; if (!t) return;
+  let ok = false;
+  try { await navigator.clipboard.writeText(t); ok = true; }
+  catch(e) { const m = $("#msg"); m.select(); try { ok = document.execCommand("copy"); } catch(_) {} }
+  $("#copied").textContent = ok ? "コピーしました" : "長押しでコピーしてください";
+  setTimeout(() => $("#copied").textContent = "", 2500);
+};
+
+const saved = load();
+if (saved && Array.isArray(saved.groups) && saved.groups.length){
+  $("#total").value = saved.total || "";
+  $("#unit").value = String(saved.unit || 100);
+  $("#mode").value = saved.mode || "up";
+  setGroups(saved.groups);
+} else {
+  setGroups(presets.boss.map(g => ({...g})));
+}
+</script>
+</body>
+</html>
