@@ -179,8 +179,8 @@ function setGroups(list){
 function readGroups(){
   return [...document.querySelectorAll(".group")].map(d => ({
     name: d.querySelector(".name").value.trim() || "グループ",
-    count: Math.max(0, Math.floor(Number(d.querySelector(".count").value) || 0)),
-    weight: Math.max(0, Number(d.querySelector(".weight").value) || 0),
+    count: Number(d.querySelector(".count").value),
+    weight: Number(d.querySelector(".weight").value),
     fixed: d.querySelector(".fixed").value
   }));
 }
@@ -193,12 +193,17 @@ function roundTo(x, unit, mode){
 
 // 計算の本体（テストしやすいように外に出す）
 function calc(total, groups, unit, mode){
+  if (!Number.isSafeInteger(total) || total <= 0) return {error:"お会計は1円以上の整数で入力してください。"};
+  if (groups.some(g => !Number.isSafeInteger(g.count) || g.count < 0)) return {error:"人数は0以上の整数で入力してください。"};
+  if (groups.some(g => !Number.isFinite(g.weight) || g.weight < 0)) return {error:"比率は0以上の数で入力してください。"};
+  if (groups.some(g => g.fixed !== "" && g.fixed !== null && (!Number.isSafeInteger(Number(g.fixed)) || Number(g.fixed) < 0))) return {error:"固定額は0円以上の整数で入力してください。"};
+  if (![1,10,100,500,1000].includes(unit) || !["up","down","near"].includes(mode)) return {error:"端数の設定を選び直してください。"};
   const active = groups.filter(g => g.count > 0);
   if (!(total > 0)) return {error:"お会計の合計を入れてください。"};
   if (!active.length) return {error:"人数を1人以上にしてください。"};
   let fixedSum = 0, weightSum = 0;
   active.forEach(g => {
-    if (g.fixed !== "" && g.fixed !== null) fixedSum += Math.max(0, Number(g.fixed) || 0) * g.count;
+    if (g.fixed !== "" && g.fixed !== null) fixedSum += Number(g.fixed) * g.count;
     else weightSum += g.weight * g.count;
   });
   const rest = total - fixedSum;
@@ -207,7 +212,7 @@ function calc(total, groups, unit, mode){
   const base = weightSum > 0 ? rest / weightSum : 0;
   const rows = active.map(g => {
     const isFixed = g.fixed !== "" && g.fixed !== null;
-    const exact = isFixed ? Math.max(0, Number(g.fixed) || 0) : base * g.weight;
+    const exact = isFixed ? Number(g.fixed) : base * g.weight;
     const per = isFixed ? exact : roundTo(exact, unit, mode);
     return {name:g.name, count:g.count, per, subtotal:per * g.count, fixed:isFixed};
   });
@@ -217,7 +222,7 @@ function calc(total, groups, unit, mode){
 }
 
 function update(){
-  const total = Math.floor(Number($("#total").value) || 0);
+  const total = Number($("#total").value);
   const unit = Number($("#unit").value);
   const mode = $("#mode").value;
   const groups = readGroups();
@@ -284,3 +289,4 @@ if (saved && Array.isArray(saved.groups) && saved.groups.length){
 </script>
 </body>
 </html>
+
