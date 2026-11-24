@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-24T15:30:49+09:00",
+  "updated_at": "2026-11-25T03:12:47+09:00",
   "staff": {
     "migiude": {
       "last_active": null,
@@ -14,7 +14,7 @@
       "latest": "その他の作業"
     },
     "owner": {
-      "last_active": "2026-11-23T12:42:14+09:00",
+      "last_active": "2026-11-24T15:57:07+09:00",
       "latest": "日報を作成",
       "pending_decisions": 0
     }
